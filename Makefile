@@ -1,9 +1,14 @@
-all: raw_data/insulin_pricing.csv
+all: artifacts/drug_utilization_2021_cleaned.csv
 
-raw_data/insulin_pricing.csv:
+# acquire raw data
+raw_data/drug_utilization_2021.csv:
 	python get_data.py
 
-# clean the generated artificats
+# clean data file
+artifacts/drug_utilization_2021_cleaned.csv: raw_data/drug_utilization_2021.csv
+	python clean.py
+
+# remove the generated artifacts from the filesystem
 clean:
 	rm artifacts/*.csv
 
