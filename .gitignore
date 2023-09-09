@@ -160,6 +160,5 @@ cython_debug/
 #.idea/
 
 # project specific
-raw_data/insulin_pricing.csv
-raw_data/drug_utilization_2021.csv
-artifacts/drug_utilization_2021_cleaned.csv
+raw_data/
+artifacts/
