@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 
-def clean_NHIS(path='raw_data/adult19.csv',
+def clean_NHIS(path='raw_data/nhis/adult19.csv',
                outfile='artifacts/adult19_cleaned.csv'):
     if os.path.exists(outfile):
         return
@@ -13,7 +13,7 @@ def clean_NHIS(path='raw_data/adult19.csv',
     df.to_csv(outfile, index=False)
 
 
-def clean_drug_utilization(path='raw_data/drug_utilization_2019.csv',
+def clean_drug_utilization(path='raw_data/util/drug_utilization_2019.csv',
                            outfile='artifacts/drug_utilization_2019_cleaned.csv'):
     if os.path.exists(outfile):
         return
@@ -26,8 +26,8 @@ def clean_drug_utilization(path='raw_data/drug_utilization_2019.csv',
     df.to_csv(outfile, index=False)
 
 
-def clean_ndac_pricing(path='raw_data/ndac_pricing_2019.csv',
-                       outfile='artifacts/ndac_pricing_2019_cleaned.csv'):
+def clean_nadac_pricing(path='raw_data/nadac/nadac_pricing_2019.csv',
+                       outfile='artifacts/nadac_pricing_2019_cleaned.csv'):
     if os.path.exists(outfile):
         return
     print('cleaning: ', path)
@@ -42,8 +42,8 @@ def process_clean(cleaning_option):
         clean_drug_utilization()
     if cleaning_option in ['nhis', 'all']:
         clean_NHIS()
-    if cleaning_option in ['ndac', 'all']:
-        clean_ndac_pricing()
+    if cleaning_option in ['nadac', 'all']:
+        clean_nadac_pricing()
 
 
 if __name__ == '__main__':
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # pass an arg using either "-co" or "--clean_option"
     parser.add_argument('-co', '--cleaning_option',
-                        help='Which file to clean? [nhis|util|ndac|all] Default is all',
+                        help='Which file to clean? [nhis|util|nadac|all] Default is all',
                         default="all",
                         required=False)
     args = parser.parse_args()
