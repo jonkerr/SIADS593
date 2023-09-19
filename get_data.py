@@ -41,6 +41,8 @@ def download_zip(zipurl, outpath, filename):
 """
 The following methods are for acquiring specific data sets
 """
+
+
 def download_diabetes_ndc_codes(outfile='raw_data/NDC11_Diabetes_Drug.xlsx'):
     if os.path.exists(outfile):
         return
@@ -74,6 +76,55 @@ def download_drug_utiliztion(outpath='raw_data/util/', outfile=r'drug_utilizatio
         2019: 'daba7980-e219-5996-9bec-90358fd156f1'
     }
     bulk_download_medicaid(year_ids, outpath, outfile)
+    return year_ids.keys()
+
+
+"""
+get_combined_utilization() is the key method for acquiring utilization files.
+It performs the following steps:
+  1. Download all utilization files
+  2. Combines into a single output file
+Since these are large files, some optimizations need to applied.  The first of which is using
+the dtype when opening the CSVs.
+"""
+def get_combined_utilization(outpath='raw_data/util/', outfile=r'drug_utilization_{}.csv'):
+    # ensure all files are downloaded first
+    years = download_drug_utiliztion(outpath, outfile)
+
+    # now we've got all the files, merge into a single combined file
+    # first, ensure file doesn't exist already
+    combined = f'{outpath}{outfile}'.format('combined')
+    if os.path.exists(combined):
+        return
+
+    dtypes = {
+        'utilization_type':'object',
+        'state': 'object',
+        'ndc': 'int64',
+        'labeler_code': 'int64',
+        'product_code': 'int64',
+        'package_size': 'float64',
+        'year': 'int64',
+        'quarter': 'int64',
+        'suppression_used': 'bool',
+        'product_name': 'object',
+        'units_reimbursed': 'float64',
+        'number_of_prescriptions': 'float64',
+        'total_amount_reimbursed': 'float64',
+        'medicaid_amount_reimbursed': 'float64',
+        'non_medicaid_amount_reimbursed': 'float64',
+    }
+
+    # combine
+    dfs = []
+    for year in years:
+        file = f'{outpath}{outfile}'.format(year)
+        print(f'loading: {file}')
+        dfs.append(
+            pd.read_csv(file, dtype=dtypes)
+        )
+    print('concat')
+    pd.concat(dfs, ignore_index=True, axis=0)
 
 
 def download_nadac_pricing(outpath='raw_data/nadac/', outfile=r'nadac_pricing_{}.csv'):
