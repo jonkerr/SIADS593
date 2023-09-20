@@ -67,7 +67,76 @@ def clean_NHIS(path='raw_data/nhis',
 
     nhis15updated = nhis15updated.rename(columns={"DIBEV":"DIBEV1","DIBAGE":"DIBAGE1","DIBPILL":"DIBPILL1","INSLN":"INSLN1"})
 
-    frames = [nhis15updated,nhis16updated,nhis17updated,nhis18updated,nhis19updated]
+    varmap = [{'REGION': { 'index': 33, 'length': 1}},
+    {'AGE_P': { 'index': 48, 'length': 2}},
+    {'SEX': { 'index': 39, 'length': 1}},
+    {'RACERPI2': { 'index': 42, 'length': 2}},
+    {'DIBEV1': { 'index': 246, 'length': 1}},
+    {'DIBAGE1': { 'index': 248, 'length': 2}},
+    {'DIBPILL1': { 'index': 253, 'length': 1}},
+    {'INSLN1': { 'index': 252, 'length': 1}},
+    {'HYPEV': { 'index': 79, 'length': 1}},
+    {'HYPDIFV': { 'index': 80, 'length': 1}},
+    {'HYPMED2': { 'index': 87, 'length': 1}},
+    {'CHLEV': { 'index': 88, 'length': 1}},
+    {'CHLMDNW2': { 'index': 94, 'length': 1}},
+    {'CHDEV': { 'index': 95, 'length': 1}},
+    {'ANGEV': { 'index': 96, 'length': 1}},
+    {'MIEV': { 'index': 97, 'length': 1}},
+    {'STREV': { 'index': 99, 'length': 1}},
+    {'CNKIND1': { 'index': 125, 'length': 1}},
+    {'CANAGE1': { 'index': 156, 'length': 3}},
+    {'CNKIND2': { 'index': 126, 'length': 1}},
+    {'CANAGE2': { 'index': 159, 'length': 3}},
+    {'CNKIND7': { 'index': 131, 'length': 1}},
+    {'CANAGE7': { 'index': 174, 'length': 3}},
+    {'CNKIND9': { 'index': 133, 'length': 1}},
+    {'CANAGE9': { 'index': 180, 'length': 3}},
+    {'CNKIND13': { 'index': 137, 'length': 1}},
+    {'CANAGE13': { 'index': 192, 'length': 3}},
+    {'CNKIND14': { 'index': 138, 'length': 1}},
+    {'CANAGE14': { 'index': 195, 'length': 3}},
+    {'CNKIND15': { 'index': 139, 'length': 1}},
+    {'CANAGE15': { 'index': 198, 'length': 3}},
+    {'CNKIND19': { 'index': 143, 'length': 1}},
+    {'CANAGE19': { 'index': 210, 'length': 3}},
+    {'CNKIND21': { 'index': 145, 'length': 1}},
+    {'CANAGE21': { 'index': 216, 'length': 3}},
+    {'CNKIND25': { 'index': 149, 'length': 1}},
+    {'CANAGE25': { 'index': 228, 'length': 3}},
+    {'CNKIND28': { 'index': 152, 'length': 1}},
+    {'CANAGE28': { 'index': 237, 'length': 3}},
+    {'ARX12_3': { 'index': 869, 'length': 1}},
+    {'ARX12_1': { 'index': 867, 'length': 1}},
+    {'AHCAFYR1': { 'index': 858, 'length': 1}}]
+
+
+    file = open('raw_data/nhis/2014/samadult.dat','r')
+    # Get keys and make an empty dataframe
+
+    columnList = []
+    for var in varmap:
+        columnList.append(list(var.keys())[0])
+
+
+    dataValues = []
+    for i in file.readlines():
+        rowval = []
+        for v in varmap:
+            varKey = list(v.keys())[0]
+            index = v[varKey]['index']
+            length = v[varKey]['length']
+            rowval.append(i[index-1:index-1+length])
+        dataValues.append(rowval)
+
+    valuesDF = pd.DataFrame(dataValues, columns=columnList)
+    
+    nhis2014updated = valuesDF
+    nhis2014updated['Year'] = 2014
+
+    
+
+    frames = [nhis2014updated,nhis15updated,nhis16updated,nhis17updated,nhis18updated,nhis19updated]
     combined_nhis = pd.concat(frames)
 
     # End cleaning code
