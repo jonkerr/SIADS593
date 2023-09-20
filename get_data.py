@@ -55,8 +55,27 @@ def download_diabetes_ndc_codes(outfile='raw_data/NDC11_Diabetes_Drug.xlsx'):
 
 def download_NHIS(outpath='raw_data/nhis/'):
     zipurl = "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2019/adult19csv.zip"
-    download_zip(zipurl, outpath, "adult19.csv")
-
+    download_zip(zipurl, outpath + '2019/', "adult19.csv")
+    zipurl ='https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2018/samadultcsv.zip'
+    download_zip(zipurl, outpath + '2018/', "samadult.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2018/personsxcsv.zip'
+    download_zip(zipurl, outpath + '2018/', "personsx.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2017/samadultcsv.zip'
+    download_zip(zipurl, outpath + '2017/', "samadult.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2017/personsxcsv.zip'
+    download_zip(zipurl, outpath + '2017/', "personsx.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2016/samadultcsv.zip'
+    download_zip(zipurl, outpath + '2016/', "samadult.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2016/personsxcsv.zip'
+    download_zip(zipurl, outpath + '2016/', "personsx.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2015/samadult.zip'
+    download_zip(zipurl, outpath + '2015/', "samadult.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2015/personsx.zip'
+    download_zip(zipurl, outpath + '2015/', "personsx.csv")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2014/samadult.zip'
+    download_zip(zipurl, outpath + '2014/', "samadult.dat")
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2014/personsx.zip'
+    download_zip(zipurl, outpath + '2014/', "personsx.dat")
 
 def bulk_download_medicaid(year_ids, outpath, outfile):
     if not os.path.exists(outpath):
