@@ -9,11 +9,15 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 """
-download_from_medicaid() and download_zip() are generalized methods for downloading information.
+This file is for the acquisition of raw data.  
+We will save all downloaded data to the folder: raw_data
 """
 
 
 def download_from_medicaid(dataset_id, outfile):
+    """
+    download_from_medicaid() and download_zip() are generalized methods for downloading information.
+    """
     # don't download if this already exists
     if os.path.exists(outfile):
         return
@@ -56,7 +60,7 @@ def download_diabetes_ndc_codes(outfile='raw_data/NDC11_Diabetes_Drug.xlsx'):
 def download_NHIS(outpath='raw_data/nhis/'):
     zipurl = "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2019/adult19csv.zip"
     download_zip(zipurl, outpath + '2019/', "adult19.csv")
-    zipurl ='https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2018/samadultcsv.zip'
+    zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2018/samadultcsv.zip'
     download_zip(zipurl, outpath + '2018/', "samadult.csv")
     zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2018/personsxcsv.zip'
     download_zip(zipurl, outpath + '2018/', "personsx.csv")
@@ -76,6 +80,7 @@ def download_NHIS(outpath='raw_data/nhis/'):
     download_zip(zipurl, outpath + '2014/', "samadult.dat")
     zipurl = 'https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2014/personsx.zip'
     download_zip(zipurl, outpath + '2014/', "personsx.dat")
+
 
 def bulk_download_medicaid(year_ids, outpath, outfile):
     if not os.path.exists(outpath):
@@ -98,15 +103,15 @@ def download_drug_utiliztion(outpath='raw_data/util/', outfile=r'drug_utilizatio
     return year_ids.keys()
 
 
-"""
-get_combined_utilization() is the key method for acquiring utilization files.
-It performs the following steps:
-  1. Download all utilization files
-  2. Combines into a single output file
-Since these are large files, some optimizations need to applied.  The first of which is using
-the dtype when opening the CSVs.
-"""
 def get_combined_utilization(outpath='raw_data/util/', outfile=r'drug_utilization_{}.csv'):
+    """
+    get_combined_utilization() is the key method for acquiring utilization files.
+    It performs the following steps:
+    1. Download all utilization files
+    2. Combines into a single output file
+    Since these are large files, some optimizations need to applied.  The first of which is using
+    the dtype when opening the CSVs.
+    """
     # ensure all files are downloaded first
     years = download_drug_utiliztion(outpath, outfile)
 
@@ -117,7 +122,7 @@ def get_combined_utilization(outpath='raw_data/util/', outfile=r'drug_utilizatio
         return
 
     dtypes = {
-        'utilization_type':'object',
+        'utilization_type': 'object',
         'state': 'object',
         'ndc': 'int64',
         'labeler_code': 'int64',
@@ -158,12 +163,14 @@ def download_nadac_pricing(outpath='raw_data/nadac/', outfile=r'nadac_pricing_{}
     bulk_download_medicaid(year_ids, outpath, outfile)
 
 
-"""
-Select targets for download
-"""
+def download_diabetes_products():
+    pass
 
 
 def process_download_target(download_option):
+    """
+    Select targets for download
+    """
     if download_option in ['nhis', 'all']:
         download_NHIS()
     if download_option in ['util', 'all']:
@@ -172,6 +179,8 @@ def process_download_target(download_option):
         download_nadac_pricing()
     if download_option in ['ndc', 'all']:
         download_diabetes_ndc_codes()
+    if download_option in ['diap','all']:
+        download_diabetes_products()
 
 
 if __name__ == '__main__':
@@ -179,7 +188,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # pass an arg using either "-do" or "--download_option"
     parser.add_argument('-do', '--download_option',
-                        help='Which file to download? [nhis|util|nadac|ndc|all] Default is all',
+                        help='Which file to download? [nhis|util|nadac|ndc|diap|all] Default is all',
                         default="all",
                         required=False)
     args = parser.parse_args()

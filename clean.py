@@ -1,6 +1,10 @@
 import pandas as pd
 import os
 
+"""
+Clean, transform, merge downloaded data.
+"""
+
 YEARS = [2014, 2015, 2016, 2017, 2018, 2019]
 
 def clean_NHIS(path='raw_data/nhis',
@@ -144,21 +148,18 @@ def clean_NHIS(path='raw_data/nhis',
     combined_nhis.to_csv(outfile, index=False)
 
 
-"""
-Open each file, clean, and ultimately merge into a single file.
-I had to add an intermediate step of saving each cleaned file as the process was being killed,
-likely due to low memory.
-"""
-def combine_and_clean_drug_utilization(input_path='raw_data/util/',
-                                       output_path='artifacts/util/', 
+def clean_drug_utilization(input_path='raw_data/util/',
+                           output_path='artifacts/', 
                            fileformat=r'drug_utilization_{}.csv'):
 
-    # ensure output dir exists
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
+    """
+    Open each file, clean, and ultimately merge into a single file.
+    I had to add an intermediate step of saving each cleaned file as the process was being killed,
+    likely due to low memory.
+    """
     
     # if combined file exists, no need to run again
-    combined_output_file = f'{output_path}{fileformat}'.format('combined')
+    combined_output_file = f'{output_path}{fileformat}'.format('cleaned')
     if os.path.exists(combined_output_file):
         return
     
@@ -182,16 +183,19 @@ def combine_and_clean_drug_utilization(input_path='raw_data/util/',
         'non_medicaid_amount_reimbursed': 'float64',
     }
 
-    outformat = f'{output_path}{fileformat}'.format('{}_cleaned')
     component_files = []
-    print(outformat)
+    output_temp_path = f'{output_path}temp/'
+    # ensure output dir exists
+    if not os.path.exists(output_temp_path):
+        os.mkdir(output_temp_path)
+
     for year in YEARS:
         input_file = f'{input_path}{fileformat}'.format(year)
-        single_output_file = f'{output_path}{fileformat}'.format(f'{year}_cleaned')
+        single_output_file = f'{output_temp_path}{fileformat}'.format(f'{year}_cleaned')
         component_files.append(single_output_file)
         # have we already processed this file?
         if os.path.exists(single_output_file):
-            return
+            continue
 
         print('cleaning: ', input_file)
         df = pd.read_csv(input_file, dtype=dtypes) 
@@ -208,8 +212,6 @@ def combine_and_clean_drug_utilization(input_path='raw_data/util/',
         df.to_csv(single_output_file, index=False)
         # free up memory
         del(df)
-
-#        dfs.append(df)
 
     dtypes_proper = {
         'utilization_type':'object',
@@ -237,31 +239,65 @@ def combine_and_clean_drug_utilization(input_path='raw_data/util/',
 
 
     print('concat')
-    df_combined = pd.concat(dfs, ignore_index=True, axis=0)
+    try:
+        df_combined = pd.concat(dfs, ignore_index=True, axis=0)
+    except Exception as e:
+        print(f'caught {type(e)}: e')
+
     print('save')
     df_combined.to_csv(combined_output_file, index=False)
     del(df_combined)
 
 
+def clean_nadac_pricing(input_path='raw_data/nadac/',
+                           output_path='artifacts/', 
+                           fileformat=r'nadac_pricing_{}.csv'):
+    # ensure output dir exists
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
 
-def clean_nadac_pricing(path='raw_data/nadac/nadac_pricing_2019.csv',
-                       outfile='artifacts/nadac_pricing_2019_cleaned.csv'):
-    if os.path.exists(outfile):
+    # if combined file exists, no need to run again
+    combined_output_file = f'{output_path}{fileformat}'.format('cleaned')
+    if os.path.exists(combined_output_file):
         return
-    print('cleaning: ', path)
-    df = pd.read_csv(path)
-    # Cleaning code here
-    # End cleaning code
-    df.to_csv(outfile, index=False)
+    
+    df_combined = None
+    for year in YEARS:
+        input_file = f'{input_path}{fileformat}'.format(year)
+        print('cleaning: ', input_file)
+        df = pd.read_csv(input_file) 
+        df_combined = df if df_combined is None else pd.concat([df_combined, df], ignore_index=True, axis=0)  
 
+    print('saving combined: combined_output_file')
+    df_combined.to_csv(combined_output_file, index=False)
+    del(df_combined)
+
+
+def clean_diabetes_products():
+    # save to: artifacts/diabetes_products_cleaned.csv
+    pass
+
+
+def combine_all():
+    fnames = [
+        'diabetes_products_cleaned.csv', # this is what Zac will create
+        'drug_utilization_cleaned.csv',
+        'nadac_pricing_combined.csv',
+        'nhis_cleaned.csv',
+    ]
+    # do merge
 
 def process_clean(cleaning_option):
     if cleaning_option in ['util', 'all']:
-        combine_and_clean_drug_utilization()
+        clean_drug_utilization()
     if cleaning_option in ['nhis', 'all']:
         clean_NHIS()
     if cleaning_option in ['nadac', 'all']:
         clean_nadac_pricing()
+    if cleaning_option in ['diap', 'all']:
+        clean_diabetes_products()
+    if cleaning_option == 'all':
+        combine_all()
 
 
 if __name__ == '__main__':
@@ -269,7 +305,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # pass an arg using either "-co" or "--clean_option"
     parser.add_argument('-co', '--cleaning_option',
-                        help='Which file to clean? [nhis|util|nadac|all] Default is all',
+                        help='Which file to clean? [nhis|util|nadac|diap|all] Default is all',
                         default="all",
                         required=False)
     args = parser.parse_args()

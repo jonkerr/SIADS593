@@ -11,6 +11,7 @@ artifacts/drug_utilization_cleaned.csv: raw_data/util/drug_utilization_2019.csv
 # remove the generated artifacts from the filesystem
 clean:
 	rm artifacts/*.csv
+	rm -fr artifacts/temp
 
 # if for some reason we want to also clean the downloaded/source data, we can use the cleanraw target
 # generally not recommended as these files are huge and we shouldn't plan on editing the source
