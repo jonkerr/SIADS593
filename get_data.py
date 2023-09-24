@@ -30,7 +30,7 @@ def download_from_medicaid(dataset_id, outfile):
         file.write(response.content)
 
 
-def download_zip(zipurl, outpath, filename):
+def download_zip(zipurl, outpath, filename=""):
     # don't download if this already exists
     if os.path.exists(outpath + filename):
         return
@@ -152,9 +152,11 @@ def download_nadac_pricing(outpath='raw_data/nadac/', outfile=r'nadac_pricing_{}
     bulk_download_medicaid(year_ids, outpath, outfile)
 
 # will return two files package.xls and product.xls
-def download_diabetes_products(outpath='raw_data/fda_NDC_all',filename = "ndcxls.zip"):
+def download_diabetes_products(outpath='raw_data/fda_NDC_all/',filename = "ndcxls.zip"):
+#    if not os.path.exists(outpath):
+#        os.mkdir(outpath)
     zipurl = "https://www.accessdata.fda.gov/cder/ndcxls.zip"
-    download_zip(zipurl, outpath,filename)
+    download_zip(zipurl, outpath, filename)
     
 
 
@@ -168,8 +170,8 @@ def process_download_target(download_option):
         download_drug_utiliztion()
     if download_option in ['nadac', 'all']:
         download_nadac_pricing()
-    if download_option in ['ndc', 'all']:
-        download_diabetes_ndc_codes()
+#    if download_option in ['ndc', 'all']:
+#        download_diabetes_ndc_codes()
     if download_option in ['diap','all']:
         download_diabetes_products()
 
@@ -179,7 +181,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # pass an arg using either "-do" or "--download_option"
     parser.add_argument('-do', '--download_option',
-                        help='Which file to download? [nhis|util|nadac|ndc|diap|all] Default is all',
+                        help='Which file to download? [nhis|util|nadac|diap|all] Default is all',
                         default="all",
                         required=False)
     args = parser.parse_args()
