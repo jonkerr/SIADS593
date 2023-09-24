@@ -151,7 +151,7 @@ def download_nadac_pricing(outpath='raw_data/nadac/', outfile=r'nadac_pricing_{}
     }
     bulk_download_medicaid(year_ids, outpath, outfile)
 
-#will return two files package.xls and product.xls
+# will return two files package.xls and product.xls
 def download_diabetes_products(outpath='raw_data/fda_NDC_all',filename = "ndcxls.zip"):
     zipurl = "https://www.accessdata.fda.gov/cder/ndcxls.zip"
     download_zip(zipurl, outpath,filename)
