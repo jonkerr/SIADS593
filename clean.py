@@ -273,7 +273,7 @@ def clean_nadac_pricing(input_path='raw_data/nadac/',
     del(df_combined)
 
 
-def clean_diabetes_products(outfile='artifacts/diabetes_products_cleaned.csv'):
+def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifacts/diabetes_products_cleaned.csv'):
     product_filename = "product.xls"
     package_filename = "package.xls"
     product_df = pd.read_csv(f"{extract_dir}/{product_filename}",delimiter='\t',encoding='latin1')
@@ -295,7 +295,7 @@ def clean_diabetes_products(outfile='artifacts/diabetes_products_cleaned.csv'):
     # Added package descirption in case later analysis needs
     DB_Grp_NDC=pd.merge(DB_Grp, package_df[['PRODUCTID', 'NDCPACKAGECODE','PACKAGEDESCRIPTION']], on='PRODUCTID', how='left')
     # clean out those unmatched products
-    DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any')
+    DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any').copy()
     # Add one more conlumn for NDC key with 11 dights without hypen format
     # DB_GRP['NDCPACKAGECODE']= DB_GRP['NDCPACKAGECODE'].astype(str)
     DB_GRP['NDC_KEY']=DB_GRP['NDCPACKAGECODE'].str.replace("-", "").apply(lambda x: x.zfill(10))
