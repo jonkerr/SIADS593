@@ -273,9 +273,35 @@ def clean_nadac_pricing(input_path='raw_data/nadac/',
     del(df_combined)
 
 
-def clean_diabetes_products():
-    # save to: artifacts/diabetes_products_cleaned.csv
-    pass
+def clean_diabetes_products(outfile='artifacts/diabetes_products_cleaned.csv'):
+    product_filename = "product.xls"
+    package_filename = "package.xls"
+    product_df = pd.read_csv(f"{extract_dir}/{product_filename}",delimiter='\t',encoding='latin1')
+    package_df = pd.read_csv(f"{extract_dir}/{package_filename}",delimiter='\t',encoding='latin1')
+    # Filter into 10 different anti-diabetes families/grps
+    Insulin=product_df[product_df['PHARM_CLASSES'].str.contains('Insulin', case=False, na=False)]
+    Alpha_G_INHB=product_df[product_df['PHARM_CLASSES'].str.contains('alpha Glucosidase Inhibitors', case=False, na=False)]
+    Thiazolidinedione= product_df[product_df['PHARM_CLASSES'].str.contains('Thiazolidinedione', case=False, na=False)]
+    Biguanides=product_df[product_df['PHARM_CLASSES'].str.contains('Biguanide', case=False, na=False)]
+    Sulfonylurea=product_df[product_df['PHARM_CLASSES'].str.contains('Sulfonylurea', case=False, na=False)]
+    DA_2A=product_df[product_df['SUBSTANCENAME'].str.contains('BROMOCRIPTINE MESYLATE', case=False, na=False)]
+    SGLT_2_INHB=product_df[product_df['PHARM_CLASSES'].str.contains('Sodium-Glucose Transporter 2 Inhibitors', case=False, na=False)]
+    GLP_1_RA=product_df[product_df['PHARM_CLASSES'].str.contains('GLP-1 Receptor Agonist', case=False, na=False)]
+    Glinide=product_df[product_df['PHARM_CLASSES'].str.contains('Glinide', case=False, na=False)]
+    DDP_4_INHB=product_df[product_df['PHARM_CLASSES'].str.contains('Dipeptidyl Peptidase 4 Inhibitor', case=False, na=False)]
+    # Group them together
+    grp = [Insulin, Thiazolidinedione, Sulfonylurea,SGLT_2_INHB,Glinide,GLP_1_RA,DDP_4_INHB,DA_2A,Biguanides,Alpha_G_INHB]
+    DB_Grp = pd.concat(grp, ignore_index=True).drop_duplicates()
+    # Added package descirption in case later analysis needs
+    DB_Grp_NDC=pd.merge(DB_Grp, package_df[['PRODUCTID', 'NDCPACKAGECODE','PACKAGEDESCRIPTION']], on='PRODUCTID', how='left')
+    # clean out those unmatched products
+    DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any')
+    # Add one more conlumn for NDC key with 11 dights without hypen format
+    # DB_GRP['NDCPACKAGECODE']= DB_GRP['NDCPACKAGECODE'].astype(str)
+    DB_GRP['NDC_KEY']=DB_GRP['NDCPACKAGECODE'].str.replace("-", "").apply(lambda x: x.zfill(10))
+    # Saave to: artifacts/diabetes_products_cleaned.csv
+    DB_GRP.to_csv(outfile,index=False)
+
 
 
 def combine_all():
