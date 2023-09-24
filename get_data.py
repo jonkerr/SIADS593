@@ -46,17 +46,6 @@ def download_zip(zipurl, outpath, filename):
 The following methods are for acquiring specific data sets
 """
 
-
-def download_diabetes_ndc_codes(outfile='raw_data/NDC11_Diabetes_Drug.xlsx'):
-    if os.path.exists(outfile):
-        return
-    print('download NDC codes')
-    url = 'https://figshare.com/ndownloader/files/20202789'
-    response = requests.get(url)
-    with open(outfile, mode="wb") as file:
-        file.write(response.content)
-
-
 def download_NHIS(outpath='raw_data/nhis/'):
     zipurl = "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/2019/adult19csv.zip"
     download_zip(zipurl, outpath + '2019/', "adult19.csv")
@@ -163,7 +152,7 @@ def download_nadac_pricing(outpath='raw_data/nadac/', outfile=r'nadac_pricing_{}
     bulk_download_medicaid(year_ids, outpath, outfile)
 
 #will return two files package.xls and product.xls
-def download_diabetes_products():
+def download_diabetes_products(outpath='raw_data/fda_NDC_all',filename = "ndcxls.zip"):
     zipurl = "https://www.accessdata.fda.gov/cder/ndcxls.zip"
     download_zip(zipurl, outpath,filename)
     
