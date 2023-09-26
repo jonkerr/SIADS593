@@ -334,7 +334,7 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any')
   
     #use NDC detect function to find different NDCPACKAGECODE formats
-    df_ndc['FORMAT'] = df_ndc['NDCPACKAGECODE'].apply(detect_ndc_format).astype(str)
+    DB_GRP['FORMAT'] = df_ndc['NDCPACKAGECODE'].apply(detect_ndc_format).astype(str)
   
     #create a field of NDC with 11 digits format 
     DB_GRP['NDC_11'] = df_ndc.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE'], row['Format']), axis=1)
