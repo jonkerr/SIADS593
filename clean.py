@@ -2,6 +2,42 @@ import pandas as pd
 import os
 
 """
+Utility methods
+"""
+# Function to identify NDC format; there are three formats across the FDA database. 
+def detect_ndc_format(ndc):
+    parts = ndc.split('-')
+    if len(parts[0]) == 4 and len(parts[1]) == 4:
+        return "4_4_2"
+    elif len(parts[0]) == 5 and len(parts[1]) == 3:
+        return "5_3_2"
+    elif len(parts[0]) == 5 and len(parts[1]) == 4:
+        return "5_4_1"
+
+
+
+# Function to standardize three formats into one of 11 digits
+def convert_to_11_digits(ndc, format=None):
+    if format is None:
+        format = detect_ndc_format(ndc)
+
+    if format == "4_4_2":
+        # Add '0' at the first position
+        return '0' + ndc
+    elif format == "5_3_2":
+        # Add '0' at the 6th position
+        parts = ndc.split('-')
+        parts[1] = '0' + parts[1]
+        return '-'.join(parts)
+    elif format == "5_4_1":
+        # Add '0' at the 10th position
+        parts = ndc.split('-')
+        parts[2] = parts[2]+'0'
+        return '-'.join(parts)
+
+
+
+"""
 Clean, transform, merge downloaded data.
 """
 
@@ -182,6 +218,16 @@ def clean_drug_utilization(input_path='raw_data/util/',
         'medicaid_amount_reimbursed': 'float64',
         'non_medicaid_amount_reimbursed': 'float64',
     }
+    # trim unnecessary columns
+    columns_to_drop = [
+        'labeler_code',
+        'state',
+        'utilization_type',
+        'product_code',
+        'suppression_used',
+#        'product_name',
+        'quarter'
+    ]
 
     component_files = []
     output_temp_path = f'{output_path}temp/'
@@ -201,12 +247,18 @@ def clean_drug_utilization(input_path='raw_data/util/',
         df = pd.read_csv(input_file, dtype=dtypes) 
         # eliminate rows where suppression is used.  This will reduce file size by 50%
         df = df[~df['suppression_used']]
-        # remove whitespace from product name
-        df['product_name'] = df['product_name'].str.strip()
-        # remove dashes from ndc and package_size columns
-        df['ndc'] = df['ndc'].str.replace('-','').str.strip()
-        df['package_size'] = df['package_size'].str.replace('-','').str.strip()
-        df = df.astype({'ndc':'int64', 'package_size':'int64'})
+        #df = df.astype({'ndc':'object'})
+        df = df.drop(columns=columns_to_drop)
+
+        # finally, since we're ignoring state and quarter, group all the ndc rows together
+        # this reduces row count by two orders of magnitude (50 states * 4 quarter = 200 lines per ndc year)
+        df = df.groupby(['ndc', 'product_name','package_size','year'], as_index=False).agg(
+            units_reimbursed=pd.NamedAgg(column="units_reimbursed", aggfunc="sum"),
+            number_of_prescriptions=pd.NamedAgg(column="number_of_prescriptions", aggfunc="sum"),
+            total_amount_reimbursed=pd.NamedAgg(column="total_amount_reimbursed", aggfunc="sum"),
+            medicaid_amount_reimbursed=pd.NamedAgg(column="medicaid_amount_reimbursed", aggfunc="sum"),
+            non_medicaid_amount_reimbursed=pd.NamedAgg(column="non_medicaid_amount_reimbursed", aggfunc="sum")
+        )
 
         print('saving: ', single_output_file)
         df.to_csv(single_output_file, index=False)
@@ -214,16 +266,10 @@ def clean_drug_utilization(input_path='raw_data/util/',
         del(df)
 
     dtypes_proper = {
-        'utilization_type':'object',
-        'state': 'object',
-        'ndc': 'int64',
-        'labeler_code': 'int64',
-        'product_code': 'int64',
+        'ndc': 'object',
         'package_size': 'int64',
         'year': 'int64',
         'quarter': 'int64',
-        'suppression_used': 'bool',
-        'product_name': 'object',
         'units_reimbursed': 'float64',
         'number_of_prescriptions': 'float64',
         'total_amount_reimbursed': 'float64',
@@ -261,48 +307,32 @@ def clean_nadac_pricing(input_path='raw_data/nadac/',
     if os.path.exists(combined_output_file):
         return
     
+    price_cols_to_drop = [
+        'ndc_description',
+        'pharmacy_type_indicator',
+        'otc',
+        'explanation_code',
+        'classification_for_rate_setting',
+        'effective_date',
+        'as_of_date',
+        'corresponding_generic_drug_effective_date'
+    ]
+    
     df_combined = None
     for year in YEARS:
         input_file = f'{input_path}{fileformat}'.format(year)
         print('cleaning: ', input_file)
         df = pd.read_csv(input_file) 
+        df = df.drop(columns=price_cols_to_drop)
+        df['year'] = year
+        # convert ndc to 11 digit format
+        #df['ndc'] = df.apply(lambda row: convert_to_11_digits(row['ndc']), axis=1)
+        # strip remaining dashes
+        #df['ndc'] = df['ndc'].str.replace('-','').str.strip()
         df_combined = df if df_combined is None else pd.concat([df_combined, df], ignore_index=True, axis=0)  
 
     print('saving combined: combined_output_file')
     df_combined.to_csv(combined_output_file, index=False)
-    del(df_combined)
-
-
-
-# Function to identify NDC format; there are three formats across the FDA database. 
-def detect_ndc_format(ndc):
-    parts = ndc.split('-')
-    if len(parts[0]) == 4 and len(parts[1]) == 4:
-        return "4_4_2"
-    elif len(parts[0]) == 5 and len(parts[1]) == 3:
-        return "5_3_2"
-    elif len(parts[0]) == 5 and len(parts[1]) == 4:
-        return "5_4_1"
-
-
-
-# Function to standardize three formats into one of 11 digits
-def convert_to_11_digits(ndc, format):
-    if format == "4_4_2":
-        # Add '0' at the first position
-        return '0' + ndc
-    elif format == "5_3_2":
-        # Add '0' at the 6th position
-        parts = ndc.split('-')
-        parts[1] = '0' + parts[1]
-        return '-'.join(parts)
-    elif format == "5_4_1":
-        # Add '0' at the 10th position
-        parts = ndc.split('-')
-        parts[2] = parts[2]+'0'
-        return '-'.join(parts)
-
-
 
 
 def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifacts/diabetes_products_cleaned.csv'):
@@ -331,13 +361,14 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     DB_Grp_NDC=pd.merge(DB_Grp, package_df[['PRODUCTID', 'NDCPACKAGECODE','PACKAGEDESCRIPTION']], on='PRODUCTID', how='left')
   
     #clean out those unmatched products
-    DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any')
+    DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any').copy()
   
     #use NDC detect function to find different NDCPACKAGECODE formats
-    DB_GRP['FORMAT'] = DB_GRP['NDCPACKAGECODE'].apply(detect_ndc_format).astype(str)
+    #DB_GRP['FORMAT'] = DB_GRP['NDCPACKAGECODE'].apply(detect_ndc_format).astype(str)
   
     #create a field of NDC with 11 digits format 
-    DB_GRP['NDC_11'] = DB_GRP.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE'], row['Format']), axis=1)
+#    DB_GRP['NDC_11'] = DB_GRP.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE'], row['Format']), axis=1)
+    DB_GRP['NDC_11'] = DB_GRP.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE']), axis=1)
   
     #add one more conlumn for NDC 11 dights to convert into a format without hypen; this is a key to link price and ultilization
     DB_GRP['NDC_KEY']=DB_GRP['NDC_11'].str.replace("-", "")
@@ -346,10 +377,9 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     DB_GRP.to_csv(outfile,index=False)
 
 
-
 def combine_all():
     fnames = [
-        'diabetes_products_cleaned.csv', # this is what Zac will create
+        'diabetes_products_cleaned.csv', 
         'drug_utilization_cleaned.csv',
         'nadac_pricing_combined.csv',
         'nhis_cleaned.csv',
@@ -357,14 +387,14 @@ def combine_all():
     # do merge
 
 def process_clean(cleaning_option):
-    if cleaning_option in ['util', 'all']:
-        clean_drug_utilization()
     if cleaning_option in ['nhis', 'all']:
         clean_NHIS()
     if cleaning_option in ['nadac', 'all']:
         clean_nadac_pricing()
     if cleaning_option in ['diap', 'all']:
         clean_diabetes_products()
+    if cleaning_option in ['util', 'all']:
+        clean_drug_utilization()
     if cleaning_option == 'all':
         combine_all()
 
