@@ -334,10 +334,10 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any')
   
     #use NDC detect function to find different NDCPACKAGECODE formats
-    DB_GRP['FORMAT'] = df_ndc['NDCPACKAGECODE'].apply(detect_ndc_format).astype(str)
+    DB_GRP['FORMAT'] = DB_GRP['NDCPACKAGECODE'].apply(detect_ndc_format).astype(str)
   
     #create a field of NDC with 11 digits format 
-    DB_GRP['NDC_11'] = df_ndc.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE'], row['Format']), axis=1)
+    DB_GRP['NDC_11'] = DB_GRP.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE'], row['Format']), axis=1)
   
     #add one more conlumn for NDC 11 dights to convert into a format without hypen; this is a key to link price and ultilization
     DB_GRP['NDC_KEY']=DB_GRP['NDC_11'].str.replace("-", "")
