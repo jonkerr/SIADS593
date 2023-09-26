@@ -225,7 +225,7 @@ def clean_drug_utilization(input_path='raw_data/util/',
         'utilization_type',
         'product_code',
         'suppression_used',
-#        'product_name',
+        'product_name',
         'quarter'
     ]
 
@@ -247,12 +247,11 @@ def clean_drug_utilization(input_path='raw_data/util/',
         df = pd.read_csv(input_file, dtype=dtypes) 
         # eliminate rows where suppression is used.  This will reduce file size by 50%
         df = df[~df['suppression_used']]
-        #df = df.astype({'ndc':'object'})
+        # remove unneeded columns
         df = df.drop(columns=columns_to_drop)
-
         # finally, since we're ignoring state and quarter, group all the ndc rows together
         # this reduces row count by two orders of magnitude (50 states * 4 quarter = 200 lines per ndc year)
-        df = df.groupby(['ndc', 'product_name','package_size','year'], as_index=False).agg(
+        df = df.groupby(['ndc', 'package_size','year'], as_index=False).agg(
             units_reimbursed=pd.NamedAgg(column="units_reimbursed", aggfunc="sum"),
             number_of_prescriptions=pd.NamedAgg(column="number_of_prescriptions", aggfunc="sum"),
             total_amount_reimbursed=pd.NamedAgg(column="total_amount_reimbursed", aggfunc="sum"),
@@ -266,7 +265,7 @@ def clean_drug_utilization(input_path='raw_data/util/',
         del(df)
 
     dtypes_proper = {
-        'ndc': 'object',
+        'ndc': 'int64',
         'package_size': 'int64',
         'year': 'int64',
         'quarter': 'int64',
@@ -325,10 +324,6 @@ def clean_nadac_pricing(input_path='raw_data/nadac/',
         df = pd.read_csv(input_file) 
         df = df.drop(columns=price_cols_to_drop)
         df['year'] = year
-        # convert ndc to 11 digit format
-        #df['ndc'] = df.apply(lambda row: convert_to_11_digits(row['ndc']), axis=1)
-        # strip remaining dashes
-        #df['ndc'] = df['ndc'].str.replace('-','').str.strip()
         df_combined = df if df_combined is None else pd.concat([df_combined, df], ignore_index=True, axis=0)  
 
     print('saving combined: combined_output_file')
@@ -363,11 +358,7 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     #clean out those unmatched products
     DB_GRP = DB_Grp_NDC.dropna(subset=['NDCPACKAGECODE'], how='any').copy()
   
-    #use NDC detect function to find different NDCPACKAGECODE formats
-    #DB_GRP['FORMAT'] = DB_GRP['NDCPACKAGECODE'].apply(detect_ndc_format).astype(str)
-  
     #create a field of NDC with 11 digits format 
-#    DB_GRP['NDC_11'] = DB_GRP.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE'], row['Format']), axis=1)
     DB_GRP['NDC_11'] = DB_GRP.apply(lambda row: convert_to_11_digits(row['NDCPACKAGECODE']), axis=1)
   
     #add one more conlumn for NDC 11 dights to convert into a format without hypen; this is a key to link price and ultilization
@@ -377,11 +368,53 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     DB_GRP.to_csv(outfile,index=False)
 
 
+def filter_meds(path = 'artifacts/'):    
+    """
+    Further reduce the datasets we're working with to only examine items that are both:
+    1. Diabetes datasets
+    2. Represented in both utilization and pricing
+    We can do this by finding the intersection of the three
+    """
+    # ensure this isn't done already.  Assume if one exists, they all do
+    if os.path.exists(path+'nadac_pricing_cleaned_filtered.csv'):
+        return
+
+    # get dataframes
+    df_products = pd.read_csv(path + 'diabetes_products_cleaned.csv') 
+    df_pricing = pd.read_csv(path + 'nadac_pricing_cleaned.csv') 
+    df_utilization = pd.read_csv(path + 'drug_utilization_cleaned.csv') 
+
+    # find matching diabetes drugs
+    unique_products = set(df_products['NDC_KEY'].unique())
+    unique_pricing = set(df_pricing['ndc'].unique())
+    unique_util = set(df_utilization['ndc'].unique())
+    intersected_products = list(unique_products.intersection(unique_util, unique_pricing))
+
+    # strangly, this iterative method is far more efficient than apply()
+    df_products['is_diabetes_med']=False
+    df_pricing['is_diabetes_med']=False
+    df_utilization['is_diabetes_med']=False
+    for p in intersected_products:
+        df_products.loc[df_products['NDC_KEY']==p, 'is_diabetes_med']=True
+        df_pricing.loc[df_pricing['ndc']==p, 'is_diabetes_med']=True
+        df_utilization.loc[df_utilization['ndc']==p, 'is_diabetes_med']=True 
+
+    # filter out non diabetes meds and drop temp column
+    df_products = df_products[df_products.is_diabetes_med].copy().drop(columns=['is_diabetes_med'])
+    df_pricing = df_pricing[df_pricing.is_diabetes_med].copy().drop(columns=['is_diabetes_med'])
+    df_utilization = df_utilization[df_utilization.is_diabetes_med].copy().drop(columns=['is_diabetes_med'])
+
+    # write dataframes
+    df_products.to_csv(path + 'diabetes_products_cleaned_filtered.csv') 
+    df_pricing.to_csv(path + 'nadac_pricing_cleaned_filtered.csv') 
+    df_utilization.to_csv(path + 'drug_utilization_cleaned_filtered.csv') 
+
+
 def combine_all():
     fnames = [
         'diabetes_products_cleaned.csv', 
         'drug_utilization_cleaned.csv',
-        'nadac_pricing_combined.csv',
+        'nadac_pricing_cleaned.csv',
         'nhis_cleaned.csv',
     ]
     # do merge
@@ -395,6 +428,8 @@ def process_clean(cleaning_option):
         clean_diabetes_products()
     if cleaning_option in ['util', 'all']:
         clean_drug_utilization()
+    if cleaning_option in ['filter', 'all']:
+        filter_meds()
     if cleaning_option == 'all':
         combine_all()
 
@@ -404,7 +439,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # pass an arg using either "-co" or "--clean_option"
     parser.add_argument('-co', '--cleaning_option',
-                        help='Which file to clean? [nhis|util|nadac|diap|all] Default is all',
+                        help='Which file to clean? [nhis|util|nadac|diap|filter|all] Default is all',
                         default="all",
                         required=False)
     args = parser.parse_args()
