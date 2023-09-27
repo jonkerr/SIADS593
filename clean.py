@@ -364,8 +364,14 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     #add one more conlumn for NDC 11 dights to convert into a format without hypen; this is a key to link price and ultilization
     DB_GRP['NDC_KEY']=DB_GRP['NDC_11'].str.replace("-", "")
   
+    #Update DB_CLASS by gourping those products with multiple anti-diabetes families
+    Grp =  DB_GRP.groupby('NDC_KEY')['DB_CLASS'].apply(lambda x: ' and '.join(x)).reset_index()
+    DB_GRP_NEW=DB_GRP.drop(columns=['DB_CLASS']).drop_duplicates()
+    DB_GRP_FINAL = DB_GRP_NEW.merge(Grp, on='NDC_KEY', how='left')
+     
+  
     # Save to: artifacts/diabetes_products_cleaned.csv
-    DB_GRP.to_csv(outfile,index=False)
+    DB_GRP_FINAL.to_csv(outfile,index=False)
 
 
 def filter_meds(path = 'artifacts/'):    
