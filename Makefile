@@ -1,11 +1,11 @@
-all: artifacts/drug_utilization_cleaned.csv
+all: artifacts/diabetes_meds_prices.csv
 
 # acquire raw data
 raw_data/util/drug_utilization_2019.csv:
 	python get_data.py
 
 # clean data file
-artifacts/drug_utilization_cleaned.csv: raw_data/util/drug_utilization_2019.csv
+artifacts/diabetes_meds_prices.csv: raw_data/util/drug_utilization_2019.csv
 	python clean.py
 
 # remove the generated artifacts from the filesystem

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 
 """
@@ -297,6 +298,12 @@ def clean_drug_utilization(input_path='raw_data/util/',
 def clean_nadac_pricing(input_path='raw_data/nadac/',
                            output_path='artifacts/', 
                            fileformat=r'nadac_pricing_{}.csv'):
+    """
+    Clean the nadac pricing file.  Main steps are:
+    1. Drop unused columns
+    2. Concatenate into a single data file
+    3. Take the mean of multiple nadac_per_unit prices in a given year
+    """
     # ensure output dir exists
     if not os.path.exists(output_path):
         os.mkdir(output_path)
@@ -326,6 +333,9 @@ def clean_nadac_pricing(input_path='raw_data/nadac/',
         df['year'] = year
         df_combined = df if df_combined is None else pd.concat([df_combined, df], ignore_index=True, axis=0)  
 
+    df_combined = df_combined.groupby(['ndc','year','pricing_unit'], as_index=False).agg(
+        nadac_per_unit=pd.NamedAgg(column="nadac_per_unit", aggfunc=lambda x: np.mean(x)),
+    )
     print('saving combined: combined_output_file')
     df_combined.to_csv(combined_output_file, index=False)
 
@@ -368,15 +378,16 @@ def clean_diabetes_products(extract_dir='raw_data/fda_NDC_all/', outfile='artifa
     DB_GRP.to_csv(outfile,index=False)
 
 
-def filter_meds(path = 'artifacts/'):    
+def merge_meds(path = 'artifacts/'):    
     """
     Further reduce the datasets we're working with to only examine items that are both:
     1. Diabetes datasets
     2. Represented in both utilization and pricing
-    We can do this by finding the intersection of the three
+    We can do this by finding the intersection of the three.  
+    Once this is done, filter out the non diabetes medications and merge utilization and prices by ndc and year
     """
     # ensure this isn't done already.  Assume if one exists, they all do
-    if os.path.exists(path+'nadac_pricing_cleaned_filtered.csv'):
+    if os.path.exists(path+'diabetes_meds_prices.csv'):
         return
 
     # get dataframes
@@ -404,10 +415,34 @@ def filter_meds(path = 'artifacts/'):
     df_pricing = df_pricing[df_pricing.is_diabetes_med].copy().drop(columns=['is_diabetes_med'])
     df_utilization = df_utilization[df_utilization.is_diabetes_med].copy().drop(columns=['is_diabetes_med'])
 
-    # write dataframes
-    df_products.to_csv(path + 'diabetes_products_cleaned_filtered.csv') 
-    df_pricing.to_csv(path + 'nadac_pricing_cleaned_filtered.csv') 
-    df_utilization.to_csv(path + 'drug_utilization_cleaned_filtered.csv') 
+    # Merge the utilization and the pricing 
+    print('merge utilization and pricing')
+    df_merged = pd.merge(df_utilization, df_pricing,  how='inner', left_on=['ndc','year'], right_on = ['ndc','year'])
+
+    # merge med information
+    print('merge product details')
+    df_med_info = df_products[['NDC_KEY','DB_CLASS','SUBSTANCENAME']].rename(columns={'NDC_KEY':'ndc'})
+    df_merged = pd.merge(df_merged, df_med_info, how='left', on='ndc')
+
+    ## add some derived fields
+    # assume 80% markup on cost
+    print('calculating costs')
+
+    # Assume that 75% of med cost is covered.  That leads a remaining 25% of copay (or approx 1/3 of the 75% paid)
+    # https://www.medicare.gov/drug-coverage-part-d/costs-for-medicare-drug-coverage/copaymentcoinsurance-in-drug-plans
+    # However, insulin is capped at $35/month so we'd cap at:
+    # 35 * 12 (months) * number of presecriptions
+    # and take the lesser of that amount or the "normal" calculated amount
+    # https://www.medicare.gov/drug-coverage-part-d/costs-for-medicare-drug-coverage
+    df_merged['estimated_patient_out_of_pocket'] = df_merged.apply(
+        lambda row:\
+            round(row['total_amount_reimbursed']/3 ,2) if row['DB_CLASS']!='Insulin' else\
+            round(min(row['total_amount_reimbursed']/3, (35*12*row['number_of_prescriptions'])),2)        
+        ,axis=1
+    )
+    
+    # save merged file
+    df_merged.to_csv(path + 'diabetes_meds_prices.csv', index=False) 
 
 
 def combine_all():
@@ -428,8 +463,8 @@ def process_clean(cleaning_option):
         clean_diabetes_products()
     if cleaning_option in ['util', 'all']:
         clean_drug_utilization()
-    if cleaning_option in ['filter', 'all']:
-        filter_meds()
+    if cleaning_option in ['mmeds', 'all']:
+        merge_meds()
     if cleaning_option == 'all':
         combine_all()
 
@@ -439,7 +474,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # pass an arg using either "-co" or "--clean_option"
     parser.add_argument('-co', '--cleaning_option',
-                        help='Which file to clean? [nhis|util|nadac|diap|filter|all] Default is all',
+                        help='Which file to clean? [nhis|util|nadac|diap|mmeds|all] Default is all',
                         default="all",
                         required=False)
     args = parser.parse_args()
