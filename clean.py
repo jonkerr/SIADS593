@@ -451,14 +451,21 @@ def merge_meds(path = 'artifacts/'):
     df_merged.to_csv(path + 'diabetes_meds_prices.csv', index=False) 
 
 
-def combine_all():
-    fnames = [
-        'diabetes_products_cleaned.csv', 
-        'drug_utilization_cleaned.csv',
-        'nadac_pricing_cleaned.csv',
-        'nhis_cleaned.csv',
-    ]
-    # do merge
+def clean_artifacts():
+    # imitate the make clean target
+   	## rm artifacts/*.csv
+    print("removing csv files")
+    import glob, os
+    for f in glob.glob("artifacts/*.csv"):
+        os.remove(f)
+
+	## rm -fr artifacts/temp
+    print('removing artifacts/temp dir')
+    # https://stackoverflow.com/questions/13118029/deleting-folders-in-python-recursively
+    import shutil
+    shutil.rmtree('artifacts/temp')
+
+
 
 def process_clean(cleaning_option):
     if cleaning_option in ['nhis', 'all']:
@@ -471,8 +478,9 @@ def process_clean(cleaning_option):
         clean_drug_utilization()
     if cleaning_option in ['mmeds', 'all']:
         merge_meds()
-    if cleaning_option == 'all':
-        combine_all()
+    # don't run 'all' in this case
+    if cleaning_option == 'clean':
+        clean_artifacts()
 
 
 if __name__ == '__main__':
