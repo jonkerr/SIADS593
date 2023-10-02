@@ -1,0 +1,297 @@
+NHIS Final Variables 
+
+1.REGION: Region
+1 - Northeast
+2 - Midwest
+3 - South 
+4 - West
+
+2.AGE_P: Age
+18-84 - 18-84 years
+85 - 85+
+97 Refused
+98 Not Ascertained
+99 Don’t know
+
+3.SEX: Sex
+1 - Male 
+2 -  Female
+7 - Refused
+8 - Not Ascertained
+9 - Don’t know
+
+4.RACERP12: OMB groups with mult races
+1  White only
+2  Black/African American only
+3  AIAN only
+4  Asian only
+5  Race group not releasable*
+6  Multiple race
+
+5.DIBEV1: Ever been told that you have diabetes
+1  Yes
+2  No
+3  Borderline or prediabetes
+7  Refused
+8  Not ascertained
+9  Don't know
+
+6.DIBAGE1: Age first diagnosed w/diabetes
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+7.DIBPILL1: NOW taking diabetic pills
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+8.INSULN1:NOW taking insulin
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+9.HYPEV: Ever been told you have hypertension
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+10.HYPDIFV: Ever had hypertension on 2+ visits
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+11.HYPMED2: Now taking prescribed medicine for high blood pressure
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+12.CHLEV: Ever told you had high cholesterol
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+13.CHLMDNW2: Now taking prescribed medicine to lower cholesterol
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+14.CHDEV: Ever been told you had coronary heart disease
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+15.ANGEV: Ever been told you had angina pectoris
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+16.MIEV: Ever been told you had a heart attack
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+17.STREV: Ever been told you had a stroke
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+18.CNKIND1: What kind of cancer?…bladder
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+19.CANAGE1: Age first diagnosed with cancer…bladder
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+20.CNKIND2: What kind of cancer?…blood
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+21.CANAGE2: Age first diagnosed with cancer…blood
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+22.CNKIND7: What kind of cancer?…colon
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+23.CANAGE7: Age first diagnosed with cancer…colon
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+24.CNKIND9: What kind of cancer?…gallbladder
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+25.CANAGE9: Age first diagnosed with cancer…gallbladder
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+26.CNKIND13: What kind of cancer?…liver
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+27.CANAGE13: Age first diagnosed with cancer…liver
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+28.CNKIND14: What kind of cancer?…lung
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+29.CANAGE14: Age first diagnosed with cancer…lung
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+30.CNKIND15: What kind of cancer?…lymphoma
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+31.CANAGE15: Age first diagnosed with cancer…lymphoma
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+32.CNKIND19: What kind of cancer?…pancreas
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+33.CANAGE19: Age first diagnosed with cancer…pancreas
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+34.CNKIND21: What kind of cancer?…rectum
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+35.CANAGE21: Age first diagnosed with cancer…rectum
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+
+36.CNKIND25: What kind of cancer?…stomach
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+37.CANAGE25: Age first diagnosed with cancer…stomach
+38.CNKIND28: What kind of cancer?…thyroid
+1  Mentioned
+2  Not mentioned
+7  Refused
+8  Not ascertained
+9  Don't know
+
+39.CANAGE28: Age first diagnosed with cancer…thyroid
+1-84 1-84 years 
+85 85+ years
+97  Refused
+98  Not ascertained
+99  Don't know
+40.ARX12_3: Delayed filling a prescription to save money, past 12 m
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+41.ARX12_1: Skipped medication doses to save money, past 12 m
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+42.AHCAFYR1: Couldn't afford prescription medicine, past 12 m
+1  Yes
+2  No
+7  Refused
+8  Not ascertained
+9  Don't know
+
+43.YEAR: Year of survey 
+2014
+2015
+2016
+2017
+2018
+2019
+
