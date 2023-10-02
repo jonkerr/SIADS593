@@ -16,7 +16,10 @@ clean:
 # if for some reason we want to also clean the downloaded/source data, we can use the cleanraw target
 # generally not recommended as these files are huge and we shouldn't plan on editing the source
 cleanraw:
-	rm raw_data/*.csv
+	rm -fr raw_data/fda_NDC_all
+	rm -fr raw_data/nadac
+	rm -fr raw_data/nhis
+	rm -fr raw_data/util
 
 # remove all data
 cleanall: cleanraw clean
