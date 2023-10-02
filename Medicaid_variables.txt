@@ -1,0 +1,15 @@
+NADAC
+ndc - national drug code.  Used as a primary key to identify medications - key grouping variable
+year - in addition to ndc, need to align pricing data on year - key grouping variable
+pricing_unit - determine if ml or ea.  This may not be needed.
+nadac_per_unit - what is the average price per unit?  This is one of the most important features in this file.
+
+Utilization
+ndc - national drug code.  Used as a primary key to identify medications - key grouping variable
+package_size - we thought this could be useful but didn't use in any visualizations
+year - in addition to ndc, need to align pricing data on year - key grouping variable
+units_reimbursed - this is key when combining with nadac_per_unit above to determine the total cost
+number_of_prescriptions - we thought this could be useful but units_reimbursed was more helpful
+total_amount_reimbursed - we focused on the total amount reimbursed
+medicaid_amount_reimbursed - would be useful to know for future studies how much was reimbursed by medicaid
+non_medicaid_amount_reimbursed  - would be useful to know for future studies how much was not reimbursed by medicaid
